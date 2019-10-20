@@ -13,6 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="http://github.com/chaosite",
     packages=setuptools.find_packages(),
+    setup_requires=['wheel'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
