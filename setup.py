@@ -14,6 +14,13 @@ setuptools.setup(
     url="http://github.com/chaosite",
     packages=setuptools.find_packages(),
     setup_requires=['wheel'],
+    install_requires=[
+      'lark-parser',
+      'numpy',
+      'sympy',
+      'recordclass',
+      'numeral',
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
