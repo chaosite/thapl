@@ -13,6 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="http://github.com/chaosite",
     packages=setuptools.find_packages(),
+    data_files=[("", "thapl/thapl.lark")],
     setup_requires=['wheel'],
     install_requires=[
       'lark-parser',
