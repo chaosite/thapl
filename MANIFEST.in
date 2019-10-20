@@ -1,2 +1,4 @@
-graft thapl Examples
+graft thapl 
+graft Examples
+include LICENSE
 global-exclude *.py[cod] __pycache__ *.so
