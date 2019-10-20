@@ -1,0 +1,2 @@
+play hanoi
+  load library\animable from "../library.thapl"

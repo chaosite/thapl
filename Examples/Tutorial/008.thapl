@@ -1,0 +1,30 @@
+play hanoi
+  load library\animable, library\location from "../library.thapl"
+  characters
+    pole (animable : rendering = "pole at (( position\x ))"):
+      has position (location : x = 0, y = 0)
+    disc (animable : rendering = "disc at (( position\x )), (( position\y )), width = (( width ))"):
+      has position (location : x = 0, y = 0)
+      has width (real)
+      can move:
+        [to $pole at height $height]
+        change position\y to (( $pole\position\y + 4.0 ))
+        change position\x to $pole\position\x
+        change position\y to $height
+  actors
+    poles:
+      pole 1 (pole : position\x = 0.0)
+      pole 2 (pole : position\x = 5.0)
+      pole 3 (pole : position\x = 10.0)
+    discs:
+      disc 1 (disc : position\y = 1.0, width = 40.0)
+      disc 2 (disc : position\y = 6.0, width = 35.0)
+      disc 3 (disc : position\y = 11.0, width = 30.0)
+  action
+    discs\disc 3 move to poles\pole 2 at height 1.0
+    discs\disc 2 move to poles\pole 3 at height 1.0
+    discs\disc 3 move to poles\pole 3 at height 6.0
+    discs\disc 1 move to poles\pole 2 at height 1.0
+    discs\disc 3 move to poles\pole 1 at height 1.0
+    discs\disc 2 move to poles\pole 2 at height 6.0
+    discs\disc 3 move to poles\pole 2 at height 11.0

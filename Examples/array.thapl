@@ -1,0 +1,12 @@
+play array
+  load library\animable from "library.thapl"
+  actors
+    thingy[1..5, 10] (animable <"((_\name)) i: ((i)) number: ((number))">):
+      has number => (( i + 4 ))
+      other thingy[4,10] (animable <"((_\name)) j: ((j)) number: ((other number))">):
+        has other number (integer) => (( number + j ))
+        can increment:
+          [$x]
+          change other number to (( other number + 1 ))
+  action
+    thingy increment

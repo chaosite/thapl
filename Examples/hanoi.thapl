@@ -1,0 +1,62 @@
+play hanoi
+  load library\animable, library\location from "library.thapl"
+  characters
+    rectangle (animable <"((start)) rectangle ((end))">):
+      has start (location)
+      has end (location)
+    pole (animable <"""\begin{scope}[xshift=((xshift))cm,yshift=((yshift))cm]
+\fill [((_\keys))] ((rect1)) ((rect2));
+\end{scope}""">) <xs (real)>:
+      has rect1 (rectangle <but start\x = -1.6, start\y = 0.0, end\x = 1.6, end\y = 0.25>)
+      has rect2 (rectangle <but start\x = -0.125, start\y = 0.25, end\x = 0.125, end\y = 4.25>)
+      has brown (flag) = true
+      has xshift => xs
+      has yshift = -2.0
+    disc (animable <"\node [yshift={((yshift))*5 mm},xshift={((xshift))cm},((_\keys))] { ((text)) };">) <ys (real), ctext (string), max height (real)>:
+      has shade (flag) = true
+      has shading = "radial"
+      has rounded rectangle (flag) = true
+      has minimum height => 0.5
+      has meta maximum height => max height
+      has xshift = 0.0
+      has yshift => ys
+      has text => ctext
+      can move:
+        { time = 9.0, k = 1 }
+        [slowly]:
+          set time to (( time * 2 ))
+        [quickly]:
+          set time to (( time / 2 ))
+        [importantly]:
+          set k to (( k + 10 ))
+        [to $pole at height $yshift]
+        change yshift to (( maximum height )) in (( time / 3 )) slides with k of k
+        change xshift to $pole\xshift in (( time / 3 )) slides with k of k
+        change yshift to (( $yshift - 4.0 )) in (( time / 3 )) slides with k of k
+
+  actors
+    boundingbox (animable <"\useasboundingbox ((rect));">):
+      has rect (rectangle <but start\x = -2.0, start\y = -0.5, end\x = 10.0, end\y = 5.0>)
+    poles:
+       pole 1 (pole <0.0>)
+       pole 2 (pole <3.6>)
+       pole 3 (pole <7.2>)
+    discs:
+       disc 1 (disc <-1.0, "1", 8.0>):
+         has minimum width = 30.0
+         has inner color = "green!20"
+         has outer color = "green!60!gray"
+       disc 2 (disc <(( -2.0 )), "2", (( disc 1\maximum height - 1.4 ))>):
+         has minimum width = 35.0
+         has inner color = "blue!20"
+         has outer color = "blue!60!gray"
+       disc 3 (disc <-3.0, "3", (( disc 2\maximum height - 1.4 ))>):
+         has minimum width = 40.0
+         has inner color = "purple!20"
+         has outer color = "purple!60!gray"
+
+  action
+    discs\disc 1 move slowly slowly to poles\pole 2 at height 1 meanwhile discs\disc 2 move slowly importantly to poles\pole 3 at height 1
+    discs\disc 1 move to poles\pole 3 at height 2 meanwhile discs\disc 3 move to poles\pole 2 at height 1
+    discs\disc 1 move to poles\pole 1 at height 1 meanwhile discs\disc 2 move to poles\pole 2 at height 2
+    discs\disc 1 move to poles\pole 2 at height 3

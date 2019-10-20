@@ -1,0 +1,38 @@
+play intersection
+  load library\animable, library\measure, library\location from "/home/matanp/thapl/Prototype/Examples/library.thapl"
+  characters
+    circle (animable <"((center)) circle ( ((radius)))">):
+      has center (location)
+      has radius (real)
+    rectangle (animable <"((start)) rectangle ((end))">):
+      has start (location)
+      has end (location)
+    intersected circle (animable <"""\begin{scope}[even odd rule]
+  \clip ((primary)) ((bounding box\enclosure));
+  \fill[((color))] ((secondary));
+\end{scope}""">) <c (string), p (string), s (string)>:
+      has color => c
+      has primary => p
+      has secondary => s
+  actors
+    private:
+      has circle a (circle <but center\x = 0.0, center\y = 0.0, radius = 1.0>)
+      has circle b (circle <but center\x = 0.0, center\y = 0.0, radius = 1.0>)
+    bounding box (animable <"\draw ((enclosure)); \useasboundingbox ((box));">):
+      has enclosure (rectangle <but start\x = -2.0, start\y = 2.0, end\x = 4.0, end\y = -2.0>)
+      has box (rectangle <but start\x = -2.5, start\y = 4.0, end\x = 4.0, end\y = -2.5>)
+    intersection (animable <"""\begin{scope}
+  \clip ((private\circle a));
+  \fill[((color))] ((private\circle b));
+\end{scope}""">):
+      has color = "black!20"
+    first circle (intersected circle <"red!20", "((private\circle b))", "((private\circle a))">)
+    second circle (intersected circle <"blue!20", "((private\circle a))", "((private\circle b))">)
+    borders (animable <"\draw ((private\circle a));\draw ((private\circle b));">)
+    labels (animable <"""
+\node at ( ((private\circle a\center\x))-1,((private\circle a\center\y))) [left] { $A$ };
+\node at ( ((private\circle b\center\x))+1,((private\circle b\center\y))) [right] { $B$ };""">)
+  action
+    change private\circle b\center\x to 2.1
+    change private\circle a\center\x to 2.1 meanwhile change private\circle b\center\x to 0.0
+    change private\circle b\center\y to 2.1 meanwhile change private\circle a\radius to 2.2

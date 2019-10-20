@@ -1,0 +1,33 @@
+play simple
+     load library\animable, library\measure, library\location from "library.thapl"
+     characters
+        box (animable <"\node (%()%((name))) at ((location)) [((_\keys))] {((text))};">) <n (string)>:
+            has location (location)
+            has scale = 1.0
+            has draw (flag) = true
+            has text = ""
+            has name => n
+        grid (animable <"\draw [((_\keys))] ((start)) grid ((end));">):
+            has start (location)
+            has end (location)
+            has step = 1
+            has black (flag) = true
+            has thin (flag) = true
+        arrow (animable <"\draw [->,((_\keys))] (%()%((source\name))) edge (%()%((destination\name)));">):
+            has source (reference)
+            has destination (reference)
+            has draw (flag) = true
+            has very thick (flag) = true
+            has bend left (flag) = false
+     actors
+        backgrid (grid <but start\x = 0.0, start\y = 0.0, end\x = 8.0, end\y = 8.0>)
+        A (box <"a" but location\x = 4.0, location\y = 4.0>):
+            has fill = "red"
+        B (box <"b" but location\x = 5.0, location\y = 7.0>)
+        C (box <"c" but location\x = 8.0, location\y = 8.0>)
+        arrow1 (arrow <but source=A, destination=B>)
+     action
+        A\location move to 2.0 x 1.0 meanwhile change arrow1\bend left to true
+        change A\scale to 1.5
+        B\location move to 1.0 x 3.0 meanwhile change A\fill to "green"
+        change arrow1\destination to C

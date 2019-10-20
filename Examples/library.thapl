@@ -1,0 +1,22 @@
+play library
+  characters
+    animable <r (string)>:
+      has rendering (string) => r
+      has visible (boolean) = true
+      has render => (( visible ? rendering : "" ))
+      can appear:
+        change visible to true
+      can disappear:
+        change visible to false
+      can toggle visibility:
+        change visible to (( visible ? false : true ))
+    animable block (animable <"" but render => (( visible ? rendering : "\begin{scope}[transparency group,transparent]((rendering))\end{scope}" ))>)
+    measure (animable <"((length))((unit))">):
+      has length (real)
+      has unit (string)
+    location (animable <"( ((x)), ((y)))">):
+      has x (real)
+      has y (real)
+      can move:
+        [to $newx x $newy]
+        change x to $newx meanwhile change y to $newy

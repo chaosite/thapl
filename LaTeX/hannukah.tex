@@ -1,0 +1,22 @@
+\documentclass[t,notheorems,compress]{beamer}
+
+\setbeamersize{text margin left=1em,text margin right=1em}
+
+\usepackage{tikz}
+\usetikzlibrary{shadows,patterns,shapes,positioning}
+\usepackage{bashful}
+\usepackage{adjustbox}
+
+\adjustboxset{max width=\columnwidth}
+\adjustboxset{max height=0.8\textheight}
+\adjustboxset{center}
+
+\begin{document}
+
+\bash[stdoutFile=\jobname.thapl.tex]
+PYTHONPATH=".." python -m thapl.main ../Examples/hannukah.thapl
+\END
+
+\include{\jobname.thapl}
+
+\end{document}

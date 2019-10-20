@@ -1,0 +1,55 @@
+play hannukiah
+  load library\animable from "library.thapl"
+  characters
+    candle (animable <"""
+\begin{scope}[yshift=((height))mm]
+  \draw[line width=.3mm,line join=miter,miter limit=20] (%()%((pos))*6mm,5mm)
+    to[out=0,in=-45] ++(0,5mm) to[out=-90,in=180] ++(0,-5mm)
+    to[out=20,in=-45] ++(.3mm,2mm) to[out=-90,in=160] ++(-.3mm,-2mm);
+\end{scope}""">):
+      has height = 0
+  actors
+    body (animable <"""
+\foreach \pos in {1,...,4}{
+    \draw (0:\pos * 6mm) arc(0:-180:\pos * 6mm);
+}
+\foreach \pos in  {-4,...,-1,1,2,...,4}{
+  \fill
+  (\pos * 6mm,.25mm) ++(1mm,0) -- ++(1mm,2mm) -- ++(-4mm,0) -- ++(1mm,-2mm) -- cycle
+  (\pos * 6mm,2.5mm) ++(1mm,0) -- ++(1mm,2mm) -- ++(-4mm,0) -- ++(1mm,-2mm) -- cycle;
+}
+\fill
+  (0,5mm+.25mm) ++(1mm,0) -- ++(1mm,2mm) -- ++(-4mm,0) -- ++(1mm,-2mm) -- cycle
+  (0,5mm+2.5mm) ++(1mm,0) -- ++(1mm,2mm) -- ++(-4mm,0) -- ++(1mm,-2mm) -- cycle;
+\draw (0,5mm) -- (0,4 * -6mm - 6mm);
+\fill (0,4 * -6mm - 5mm)
+  -- ++(-10mm,-2mm) -- ++(0,-1mm) -- ++(20mm,0) -- ++(0,1mm) -- cycle;""">)
+    candles[-4 .. -1, 1 .. 4] (candle <but visible = false>):
+      has pos = (( i ))
+    shamash (candle <but height = 5>):
+      has pos = 0
+  action
+    candles\item 4 appear
+    candles disappear
+    candles\item 3 appear then candles\item 4 appear
+    candles disappear
+    candles\item 2 appear then candles\item 3 appear then candles\item 4 appear
+    candles disappear
+    candles\item 1 appear then candles\item 2 appear then candles\item 3 appear
+    candles\item 4 appear
+    candles disappear
+    candles\item -1 appear then candles\item 1 appear then candles\item 2 appear
+    candles\item 3 appear then candles\item 4 appear
+    candles disappear
+    candles\item -2 appear then candles\item -1 appear
+    candles\item 1 appear then candles\item 2 appear then candles\item 3 appear
+    candles\item 4 appear
+    candles disappear
+    candles\item -3 appear then candles\item -2 appear
+    candles\item -1 appear then candles\item 1 appear then candles\item 2 appear
+    candles\item 3 appear then candles\item 4 appear
+    candles disappear
+    candles\item -4 appear then candles\item -3 appear
+    candles\item -2 appear then candles\item -1 appear
+    candles\item 1 appear then candles\item 2 appear then candles\item 3 appear
+    candles\item 4 appear

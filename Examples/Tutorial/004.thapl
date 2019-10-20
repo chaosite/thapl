@@ -1,0 +1,8 @@
+play hanoi
+  load library\animable, library\location from "../library.thapl"
+  characters
+    pole (animable : rendering = "pole at (( position/x ))"):
+      has position (location)
+    disc (animable : rendering = "disc at (( position/x )), (( position/y )), width = (( width ))"):
+      has position (location)
+      has width (real)

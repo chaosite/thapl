@@ -1,0 +1,7 @@
+play compound set
+    actors
+        box_a: has x = 20 has y  = 25
+        box_b: has x (integer) = 20 has y (integer) = 25
+        box_c: has x (integer) = 20 has y (integer) = 25
+    action
+        set box_a\x to 20 meanwhile set box_b\x to 30

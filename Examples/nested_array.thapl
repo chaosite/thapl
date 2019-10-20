@@ -1,0 +1,9 @@
+play nested array
+  load library\animable block from "library.thapl"
+  actors
+    parent (animable block <but rendering = "meep">):
+      thing (animable block <but rendering = "moop ((contents))">):
+        has contents (animable block <but rendering = "neep">)
+        array[1..5] (animable block <but rendering = "foo((i)) = ((contents))">):
+          has contents = "klang"
+          under (animable block <but rendering = "ping">)

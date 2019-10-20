@@ -1,0 +1,9 @@
+play hanoi
+  load library\animable, library\location from "../library.thapl"
+  actors
+    image (animable : rendering = "\node {\includegraphics[width=.5\textwidth]{example-image}};")
+    tooltip a:
+      node (animable : rendering = "\node (a) at (4, -2) {text};", visible = false)
+      line (animable : rendering = "\draw[<-,red] (0,1) -- (a);", visible = false)
+  action
+    tooltip a appear

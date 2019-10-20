@@ -1,0 +1,62 @@
+play trie
+    load library\animable, library\measure, library\location, library\animable block from "library.thapl"
+    load ui\node from "gc_lib.thapl"
+    characters
+        arrow (animable <"""
+\draw[((arrow shape)),((_\keys))]
+(%()%((source\name part\name))) -> (%()%((destination\name part\name)));
+""" but visible = false>):
+            has source (reference)
+            has destination (reference)
+            has arrow shape = "-{>[scale=0.2]}"
+            can appear:
+                relax
+            can show:
+                change visible to true
+        circle (node <but name part\visible = true>):
+            has draw (flag) = true
+            has circle (flag) = true
+            has fill = "green!20!blue!40"
+            has minimum width (measure <but length = 1.5, unit = "cm">)
+            can connect:
+                [to $destination using $arrow pointer]
+                change $arrow\source to self meanwhile change $arrow\destination to $destination meanwhile $arrow appear meanwhile change $arrow\arrow shape to "-{latex[scale=3.0]}"
+                $arrow show
+            can flash:
+                change fill to "green!20!blue!80"
+                change fill to "green!20!blue!40"
+
+    actors
+        r (circle <but name part\name = "r", contents part = "r", visible = false>):
+            arrow 1 (arrow <but source => r, destination => r, visible = false>)
+            arrow 2 (arrow <but source => r, destination => r, visible = false>)
+        a (circle <but name part\name = "a", contents part = "a", visible = false>):
+            has right = "of r"
+            arrow 1 (arrow <but source => a, destination => a>)
+            arrow 2 (arrow <but source => a, destination => a>)
+        m (circle <but name part\name = "m", contents part = "m", visible = false>):
+            has right = "of a"
+            arrow 1 (arrow <but source => m, destination => m>)
+            arrow 2 (arrow <but source => m, destination => m>)
+        p (circle <but name part\name = "p", contents part = "p", visible = false>):
+            has right = "of m"
+            arrow 1 (arrow <but source => p, destination => p>)
+            arrow 2 (arrow <but source => p, destination => p>)
+        c (circle <but name part\name = "c", contents part = "c", visible = false>):
+            has below = "of m"
+            arrow 1 (arrow <but source => c, destination => c>)
+            arrow 2 (arrow <but source => c, destination => c>)
+        e (circle <but name part\name = "e", contents part = "e", visible = false>):
+            has right = "of c"
+            arrow 1 (arrow <but source => e, destination => e>)
+            arrow 2 (arrow <but source => e, destination => e>)
+
+    action
+        r appear
+        a appear meanwhile r connect to a using r\arrow 1 pointer
+        m appear meanwhile a connect to m using a\arrow 2 pointer
+        p appear meanwhile m connect to p using p\arrow 1 pointer
+        r flash
+        a flash
+        c appear meanwhile a connect to c using a\arrow 1 pointer
+        e appear meanwhile c connect to e using c\arrow 1 pointer

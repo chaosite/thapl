@@ -1,0 +1,52 @@
+play convolution
+  load library\animable, library\measure, library\location from "library.thapl"
+  characters
+    axis label (animable <"\node[((_\keys))] at (2,0) {$\scriptstyle ((text))$};">):
+      has text = ""
+    y label (animable <"\node[((_\keys))] at ( ((loc\x)),((loc\y))) { ((label)) };">) <l (string)>:
+      has loc (location)
+      has semithick (flag) = true
+      has anchor = "east"
+      has label = l
+    axis (animable <"((main line))((x tick marks))((y tick mark))((y label 1))((y label 2))">):
+      has main line (animable <"\draw (-2, 0) -- (2, 0) (0, 0) -- (0, 1.15);">)
+      has x tick marks (animable <"""\foreach \x/\label in {-2/\llap{$-$}2,-1/\llap{$-$}1,0/0,1/1,2/2} {
+  \node[anchor=north,minimum width=7mm] at (\x, 0) {$\label$};
+  \draw[semithick] (\x, 0) -- (\x, -1.25pt);
+}
+""">)
+      has y tick mark (animable <"\draw[semithick] (-1.25pt,.5) -- (0,.5);">)
+      has y label 1 (y label <"$\frac{1}{2}$" but loc\x = 0.0, loc\y = 0.5>)
+      has y label 2 (y label <"$1$" but loc\x = 0.0, loc\y = 1.0>)
+      has label (axis label)
+    scoped axis (animable <"""
+\begin{scope}[yshift=((yshift))]
+((axis))
+\end{scope}
+""">):
+      has axis (axis)
+      has yshift (measure <but length = 0.0, unit = "cm">)
+    line (animable <"\draw[((_\keys)),blue!50] ( ((start x)),((start y))cm - 2.0cm) -- ( ((x)),((expression for x))((x))cm);">) <s x (real), s y (real), x expr (string)>:
+      has thick (flag) = true
+      has x (real)
+      has start x => s x
+      has start y => s y
+      has expression for x => x expr
+      can stretch:
+        [x to $target]
+        change x to $target
+  actors
+    tau axis (scoped axis <but axis\label\text = "\tau">)
+    t axis (scoped axis <but axis\label\text = "t", yshift\length = -2.0>)
+    f tau (animable <"\draw[thick,red!50] (-0.5, 0) -- +(0,1) -- +(1,1) -- +(1,0);\clip (-2,-2) rectangle (2, 1.75);">)
+    g tau (animable <"\draw[thick,green!50] ( ((x)),0) ++(-0.5, 0) -- +(0,1) -- +(1,1) -- +(1,0);\draw[semithick,green!50,dashed] ( ((x)),1.4) -- ( ((x)),-2.0cm);\node[fill=white] at ( ((x)), 1.25) {$g$};">):
+      has x (real) = -2.0
+      can step:
+        change x to (( x + 1.0 ))
+    line left (line <-1.0, 0.0, "-1cm+" but x = -1.0>)
+    line right (line <0.0, 1.0, "-1cm-" but x = 0.0>)
+  action
+    g tau step
+    g tau step meanwhile line left stretch x to 0.0
+    g tau step meanwhile line right stretch x to 1.0
+    g tau step

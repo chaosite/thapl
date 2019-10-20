@@ -1,0 +1,279 @@
+play mark and sweep
+  load library\animable, library\measure, library\location from "library.thapl"
+  load ui\labelled rectangle, ui\chain scope, ui\node, ui\node name, ui\node location, ui\arrow from "gc_lib.thapl"
+  characters
+    pointer dot (node <but location part\visible = true>):
+      has fill = "black"
+      has circle (flag) = true
+      has radius (measure <but length = 2, unit = "pt">)
+      has inner sep (measure <but length = 2, unit = "pt">)
+      has outer sep (measure <but length = 0, unit = "pt">)
+    record (node <but name part\visible = true>):
+      has draw (flag) = true
+      has fill = "blue!30"
+      has font = "\scriptsize\ttfamily"
+      has rectangle split horizontal = true
+      has rectangle split part align = "bottom"
+      has rectangle split parts = 3
+      has rectangle split (flag) = true
+      has ultra thick (flag) => (( private\current level >= private\level ))
+      private:
+        has level = 10
+        has current level = 0
+        has name => (( name part\name ))
+      can mark:
+        change private\current level to (( private\current level + 1 ))
+      can unmark:
+        change private\current level to 0
+      can maybe:
+        [green $bool]
+        change fill to (( $bool ? "green!50" : fill ))
+      dot 1st (pointer dot):
+        has location part (node location <but visible = true, point\rendering = "(%(this is a comment)%((name part\name)) 1st)">)
+      dot 2nd (pointer dot):
+        has location part (node location <but visible = true, point\rendering = "(%()%((private\name)) 2nd)">)
+    horizontal record (record):
+      has append after command => (( "{ coordinate (" + name part\name + " 1st) at ($ (" + name part\name + ".west)!1/6!(" + name part\name + ".east)$) coordinate (" + name part\name + " 2nd) at ($ (" + name part\name + ".west)!5/6!(" + name part\name + ".east)$) }" ))
+    vertical record (record <but rectangle split horizontal = false, rectangle split part align = "left">):
+      has append after command => (( "{ coordinate (" + name part\name + " 1st) at ($ (" + name part\name + ".north)!1/6!(" + name part\name + ".south)$) coordinate (" + name part\name + " 2nd) at ($ (" + name part\name + ".north)!5/6!(" + name part\name + ".south)$) }" ))
+    free list nodes[1..16] (node <but name part\name = "b((i))", name part\visible = true>):
+      has location part (node location <but visible = true, point\rendering = "(heap.east)", visible = (( i == 1 ))>)
+      has fill = "green!50!black"
+      has rectangle (flag) = true
+      has minimum width (measure <but length = (( i == 12 ? i == 11 ? i == 5 ? i == 3 ? i == 1 ? 6 : 2 : 2 : 4 : 14 : 2 )), unit = "mm">)
+      has minimum height (measure <but length = 3.5, unit = "mm">)
+      has xshift (measure <but length = (( i == 1 ? -4.0 : 0.0 )), unit = "ex">)
+      has yshift (measure <but length = (( i == 1 ? -0.5 : 0.0 )), unit = "cm">)
+      private (animable <"">):
+        has locked => (( i >= 12 ))
+      can appear:
+        change visible to (( !private\locked ))
+    allocated cells[1..12] (node):
+      has name part (node name <but name = "a((i))", visible = true>)
+      has location part (node location <but visible = true, point\rendering = "(heap.west)", visible = (( i == 1 ))>)
+      has circle = true
+      has minimum width (measure <but length = 5, unit = "mm">)
+      has fill = "blue!50"
+      has xshift (measure <but length = (( i == 1 ? 4.0 : 0 )), unit = "ex">)
+      has yshift (measure <but length = (( i == 1 ? 0.25 : 0 )), unit = "cm">)
+      private (animable <"">):
+        has fill = "blue!50"
+      can sweep:
+        [$bool]
+        change fill to (( $bool ? "teal!50" : private\fill ))
+      can flag:
+        [$bool]
+        change fill to (( $bool ? "green!50" : private\fill )) meanwhile change private\fill to (( $bool ? "green!50" : private\fill ))
+    variable (node <but name part\visible = true, location part\visible = true>):
+      has name => (( name part\name ))
+      has draw (flag) = true
+      has ultra thick (flag) = false
+      has rectangle (flag) = true
+      has fill = "red!30"
+      has minimum width (measure <but length = 0.5, unit = "cm">)
+      has minimum height (measure <but length = 0.5, unit = "cm">)
+      has font = "\scriptsize"
+      can mark:
+        change ultra thick to true
+      can unmark:
+        change ultra thick to false
+    scalar variable (variable):
+      has fill = ""
+      has pattern = "grid"
+      has pattern color = "red"
+      can mark:
+        change ultra thick to false
+    runtime stack vars (animable <"">):
+      a (scalar variable <but location part\visible = true, location part\point\rendering = "(root.east)", xshift\length = -3, xshift\unit = "ex">)
+      b (variable <but name part\name = "stack 1">):
+        dot (pointer dot <but location part\point\rendering = "(stack 1)">)
+      c (scalar variable)
+      d (variable <but name part\name = "dots 2", contents part = "$\cdot\cdots\cdot$">)
+      e (scalar variable)
+      f (variable <but name part\name = "stack 2">):
+        dot (pointer dot <but location part\point\rendering = "(stack 2)">)
+      g (scalar variable)
+    heap arrow (arrow):
+      private:
+        has counter = 0
+        has counter target = 100
+        has condition visible (boolean)
+        has condition green = false
+      can sweep:
+        set private\counter to (( private\counter + 1 ))
+        set private\condition visible to (( private\counter == private\counter target || private\condition green ))
+        change self\visible to private\condition visible meanwhile change destination\visible to private\condition visible meanwhile source sweep private\condition visible
+      can flag:
+        set private\condition green to private\condition visible
+        destination maybe green private\condition green meanwhile source flag private\condition green
+      can clean:
+        set private\condition visible to (( !private\condition visible ))
+        destination disappear meanwhile self disappear meanwhile change source\visible to private\condition visible
+    global scalar variable (scalar variable <but location part\visible = true, name part\visible = true>)
+  actors
+    store (labelled rectangle <but minimum width\length = 20, minimum height\length = 10, fill = "yellow!30", location part\visible = true, location part\point\x = 0, location part\point\y = 0, name part\name = "store", label\position = "below", label\text = "">)
+    variables:
+      heap data structure (labelled rectangle <but minimum width\length = 18.5, minimum height\length = 1.5, yshift\length=-3.5, fill = "blue!10", name part\name = "heap", location part\point\rendering = "(store)", label\position = "below", label\text = "Heap Data Structure">):
+        free list (chain scope <but join style = "->,>= stealth,shorten >=1pt">):
+          has inner (free list nodes)
+        allocated cells list (chain scope <but join style = "<-,>= stealth,shorten >=1pt">):
+          has start chain (flag) = true
+          has inner (allocated cells)
+          dot[1..12] (pointer dot):
+            has location part (node location <but visible = true, point\rendering = (( "(a" + i + ")" ))>)
+        labels:
+          allocated cells (node <but contents part = "\bf\large List of Allocated Cells">):
+            has below = "1mm of a3"
+          free list (node <but contents part = "\bf\large List of Free Blocks">):
+            has above = "1mm of free"
+            has text = "green!50!black"
+      root set (labelled rectangle <but minimum width\length = 16, minimum height\length = 2.5, yshift\length = 2.7, fill = "red!10", label\position="above", label\text="Root Set", name part\name = "root", location part\point\rendering = "(store)">):
+        runtime stack (animable <"">):
+          variables (chain scope <but join style = "", node style = "on chain", node distance\length = 0>):
+            has inner (runtime stack vars)
+          label (node <but contents part = "Runtime Stack">):
+            has above = "0 of dots 2"
+            has text = "red"
+            has font = "\bf\Large"
+        global variables (animable <"">):
+          variables:
+            a (global scalar variable <but name part\name = "a", location part\point\rendering = "($ (root.west)!.3!(root.east)$)">)
+            b (global scalar variable <but name part\name = "b", location part\point\rendering = "($ (a)!.5!(root.west)$)", yshift\length=-2, yshift\unit="">)
+            c (variable <but name part\name = "c", location part\point\rendering = "(root.center)", yshift\length = -6, yshift\unit = "">):
+              dot (pointer dot <but location part\point\rendering = "(c)">)
+            d (variable <but name part\name = "d", location part\point\rendering = "($ (a)!.5!(c)$)", yshift\length = -3, yshift\unit = "">):
+              dot (pointer dot <but location part\point\rendering = "(d)">)
+            e (variable <but name part\name = "e", location part\point\rendering = "($ (b)!.5!(a)$)", yshift\length = -6, yshift\unit = "">):
+              dot (pointer dot <but location part\point\rendering = "(e)">)
+            f (variable <but name part\name = "f", yshift\length = -6, yshift\unit = "", location part\point\rendering = "($ (b)!.5!(root.west)$)">):
+              dot (pointer dot <but location part\point\rendering = "(f)">)
+          cloud (labelled rectangle <but name part\name = "global", location part\point\rendering = "(a)", location part\visible = true, minimum width\length=9.5, minimum height\length=1.6, yshift\length=-6, yshift\unit="", xshift\length=4, xshift\unit="", location part\point\rendering="(a)", label\text = "Global Variables", label\position = "above">):
+            has color = "red"
+            has cloud (flag) = true
+            has cloud puffs = 30
+            has cloud puff arc = 120
+            has fill (flag) = false
+      heap variables:
+        variables:
+          v1 (horizontal record <but name part\name = "v1", private\level = 1>):
+            has below = "10ex of stack 2"
+          v2 (horizontal record <but name part\name = "v2", private\level = 2>):
+            has below = "4ex of v1 1st"
+          v3 (vertical record <but name part\name = "v3", private\level = 1>):
+            has below = "18ex of c"
+          v4 (vertical record <but name part\name = "v4", private\level = 2>):
+            has right = "of v3"
+          x1 (vertical record <but name part\name = "x1", private\level = 10>):
+            has below = "16ex of d"
+          x2 (horizontal record <but name part\name = "x2", private\level = 10>):
+            has below = "14ex of global.east"
+            has pattern = "grid"
+            has pattern color = "blue"
+            has fill (flag) = false
+            can maybe:
+              [green $bool]
+              relax
+          x3 (horizontal record <but name part\name = "x3", xshift\length = -3, xshift\unit = "ex", private\level = 10>):
+            has below = "14ex of global.west"
+          x4 (horizontal record <but name part\name = "x4", private\level = 10>):
+            has below = "of x3"
+          c1 (horizontal record <but name part\name = "c1", private\level = 1>):
+            has below = "12ex of e"
+          c2 (vertical record <but name part\name = "c2", xshift\length = 8, xshift\unit = "ex", private\level = 2>):
+            has below = "15ex of e"
+          c3 (horizontal record <but name part\name = "c3", private\level = 3>):
+            has below = "8ex of c1"
+          c4 (vertical record <but name part\name = "c4", xshift\length = -8, xshift\unit = "ex", private\level = 2>):
+            has below = "15ex of e"
+        arrows:
+          a (arrow <but source => (( root set\runtime stack\variables\inner\f )), destination => (( heap variables\variables\v1 ))>)
+          b (arrow <but source => (( root set\global variables\variables\c )), destination => (( heap variables\variables\v3 )), extra d = ".north">)
+          c (arrow <but source => (( root set\global variables\variables\e )), destination => (( heap variables\variables\c1 )), extra d = ".north">)
+
+          d (arrow <but source => (( heap variables\variables\v1 )), extra s = " 1st", destination => (( heap variables\variables\v2 )), extra d = ".north">)
+          e (arrow <but source => (( heap variables\variables\v3 )), extra s = " 1st", destination => (( heap variables\variables\v4 )), extra d = " 1st">)
+          f (arrow <but source => (( heap variables\variables\v3 )), extra s = " 2nd", destination => (( heap variables\variables\v4 )), extra d = " 2nd">)
+          g (arrow <but source => (( heap variables\variables\c1 )), extra s = " 2nd", destination => (( heap variables\variables\c2 )), extra d = ".north">):
+            has bend left = 30
+
+          h (arrow <but source => (( heap variables\variables\c1 )), extra s = " 1st", destination => (( heap variables\variables\c4 )), extra d = ".east">):
+            has bend left = 30
+          i (arrow <but source => (( heap variables\variables\c2 )), extra s = " 2nd", destination => (( heap variables\variables\c3 )), extra d = ".east">):
+            has bend left = 30
+          j (arrow <but source => (( heap variables\variables\c4 )), extra s = " 2nd", destination => (( heap variables\variables\c3 )), extra d = ".north">):
+            has bend left = 30
+          k (arrow <but source => (( heap variables\variables\c3 )), extra s = " 1st", destination => (( heap variables\variables\c4 )), extra d = ".south">):
+            has bend left = 30
+
+
+          l (arrow <but source => (( heap variables\variables\c2 )), extra s = " 1st", destination => (( heap variables\variables\c1 )), extra d = ".south">):
+            has bend left = 30
+          m (arrow <but source => (( heap variables\variables\c3 )), extra s = " 2nd", destination => (( heap variables\variables\c2 )), extra d = ".west">):
+            has bend left = 30
+          n (arrow <but source => (( heap variables\variables\c4 )), extra s = " 1st", destination => (( heap variables\variables\c1 )), extra d = ".west">):
+            has bend left = 30
+          o (arrow <but source => (( heap variables\variables\x3 )), extra s = " 1st", destination => (( heap variables\variables\x4 )), extra d = ".west">):
+            has bend right = 30
+          p (arrow <but source => (( heap variables\variables\x4 )), extra s = " 2nd", destination => (( heap variables\variables\x3 )), extra d = ".east">):
+            has bend right = 30
+          q (arrow <but source => (( heap variables\variables\x3 )), extra s = " 2nd", destination => (( root set\global variables\variables\e )), extra d = ".south">)
+        heap arrows:
+          has counter = 0
+          arrow one (heap arrow <but private\counter target = 12, source => (( heap data structure\allocated cells list\inner\item 1 )), destination => (( heap variables\variables\x3 )), extra d = ".west">):
+            has bend left = 45
+          arrow two (heap arrow <but private\counter target = 11, source => (( heap data structure\allocated cells list\inner\item 2 )), destination => (( heap variables\variables\x4 )), extra d = ".east">):
+            has bend right = 60
+          arrow three (heap arrow <but private\counter target = 10, source => (( heap data structure\allocated cells list\inner\item 3 )), destination => (( heap variables\variables\c1 )), extra d = ".north west">):
+            has bend left = 120
+          arrow four (heap arrow <but private\counter target = 9, source => (( heap data structure\allocated cells list\inner\item 4 )), destination => (( heap variables\variables\c4 )), extra d = ".south">):
+            has bend right = 30
+          arrow five (heap arrow <but private\counter target = 8, source => (( heap data structure\allocated cells list\inner\item 5 )), destination => (( heap variables\variables\c3 )), extra d = ".south">):
+            has bend right = 20
+          arrow six (heap arrow <but private\counter target = 7, source => (( heap data structure\allocated cells list\inner\item 6 )), destination => (( heap variables\variables\c2 )), extra d = ".south">):
+            has bend right = 20
+          arrow seven (heap arrow <but private\counter target = 6, source => (( heap data structure\allocated cells list\inner\item 7 )), destination => (( heap variables\variables\x1 )), extra d = ".south">):
+            has bend right = 20
+          arrow eight (heap arrow <but private\counter target = 5, source => (( heap data structure\allocated cells list\inner\item 8 )), destination => (( heap variables\variables\x2 )), extra d = ".west">):
+            has bend left = 45
+          arrow nine (heap arrow <but private\counter target = 4, source => (( heap data structure\allocated cells list\inner\item 9 )), destination => (( heap variables\variables\v3 )), extra d = ".west">)
+          arrow ten (heap arrow <but private\counter target = 3, source => (( heap data structure\allocated cells list\inner\item 10 )), destination => (( heap variables\variables\v4 )), extra d = ".west">)
+          arrow eleven (heap arrow <but private\counter target = 2, source => (( heap data structure\allocated cells list\inner\item 11 )), destination => (( heap variables\variables\v2 )), extra d = ".east">)
+          arrow twelve (heap arrow <but private\counter target = 1, source => (( heap data structure\allocated cells list\inner\item 12 )), destination => (( heap variables\variables\v1 )), extra d = ".east">)
+      extra arrow (arrow <but source => (( heap data structure\allocated cells list\inner\item 9 )), destination => (( heap data structure\allocated cells list\inner\item 6 )), visible = false>)
+
+  action
+    variables disappear
+    variables\root set\runtime stack\variables appear
+    variables\root set\global variables\variables appear
+    variables\heap variables\variables appear
+    variables\heap variables\arrows appear
+    variables\root set disappear meanwhile variables\heap variables disappear meanwhile variables\heap data structure\free list appear
+    variables\heap data structure\allocated cells list appear
+    variables\heap variables\variables appear meanwhile variables\heap variables\heap arrows appear
+    variables\heap variables disappear
+    variables\heap data structure appear
+    variables\heap data structure disappear meanwhile variables\root set\global variables\variables appear meanwhile variables\heap variables\variables appear meanwhile variables\heap variables\arrows appear meanwhile variables\root set\runtime stack appear
+    variables\root set mark
+    variables\heap variables mark
+    variables\heap variables mark
+    variables\heap variables mark
+    variables\heap variables mark
+    variables\root set disappear meanwhile variables\heap variables\arrows disappear meanwhile variables\heap variables\heap arrows appear meanwhile variables\heap data structure\allocated cells list appear
+    variables\heap variables sweep
+    variables\heap variables sweep
+    variables\heap variables sweep
+    variables\heap variables sweep
+    variables\heap variables sweep
+    variables\heap variables flag
+    variables\heap variables sweep
+    variables\heap variables flag
+    variables\heap variables sweep
+    variables\heap variables sweep
+    variables\heap variables sweep
+    variables\heap variables sweep
+    variables\heap variables sweep
+    variables\heap variables flag
+    variables\heap variables sweep
+    variables\heap variables flag
+    variables\heap data structure\free list appear
+    variables\heap variables clean meanwhile variables\extra arrow appear

@@ -1,0 +1,208 @@
+\message{ !name(garbage_collector.tex)}\documentclass{beamer}
+
+\usepackage{tikz}
+\usetikzlibrary{shadows,patterns,shapes,positioning,chains,arrows}
+\usepackage{bashful}
+\usepackage{adjustbox}
+
+\usetikzlibrary{arrows}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{calc}
+\usetikzlibrary{chains}
+\usetikzlibrary{circuits.ee.IEC}
+\usetikzlibrary{decorations}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{decorations.text}
+\usetikzlibrary{graphdrawing,graphs} 
+\usetikzlibrary{graphs}
+\usetikzlibrary{mindmap}
+\usetikzlibrary{patterns}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shadows}
+\usetikzlibrary{shapes}
+\usetikzlibrary{shapes.callouts}
+\usetikzlibrary{shapes.multipart}
+\usetikzlibrary{tikzmark}
+
+	\usegdlibrary{layered}
+	\usegdlibrary{trees}
+  \usegdlibrary{force}
+  \usegdlibrary{circular}
+
+\newcounter{offset}
+
+\tikzstyle{GREEN}=[fill=green!50!black]
+
+\tikzset{onslide/.code args={<#1>#2}{%
+  \only<#1>{\pgfkeysalso{#2}} % \pgfkeysalso doesn't change the path
+}}
+
+\tikzset{%
+  invisible/.style={opacity=0},
+  visible on/.style={alt={#1}},
+  alt/.code args={<#1>}{%
+    \alt<#1>{}{\pgfkeysalso{invisible}} % \pgfkeysalso doesn't change the path
+  },
+}
+
+\tikzset{current/.style={font=\bfseries\itshape,text=red}}
+\tikzset{hidden/.style={opacity=0.2}}
+% A style to modify nodes of picture by their name.
+\tikzset{furnish/.style args={#1 with #2}{/tikz/#1/.append style={#2}}}
+
+\newcommand\furnish[1]{% 
+  \tikzset{furnish/.list={#1}}
+}
+
+\tikzset{val/.style={draw,fill=blue!30,font=\scriptsize\ttfamily}}
+\tikzset{var/.style={draw,rectangle,fill=red!30,minimum width=0.5cm,minimum height=0.5cm,font=\scriptsize}}
+\tikzset{wval/.style={draw,fill=blue!10,font=\scriptsize\ttfamily}}
+
+\tikzset{CONS/.style= {val,SPLITh=2}}
+\tikzset{CONSv/.style={val,SPLITv=#1}}
+\tikzset{CONSh/.style={val,SPLITh=#1}}
+\tikzset{LABEL/.style={font=\ttfamily,above=0 of #1}}
+\tikzset{SPLITh/.style={SPLIT=#1,rectangle split horizontal,rectangle split part align=bottom}}
+\tikzset{SPLIT/.style={rectangle split,rectangle split parts=#1,rectangle split part align=left}}
+\tikzset{SPLITv/.style={SPLIT=#1,rectangle split horizontal=false}}
+\tikzset{VAL/.style={val,TRIANGLE,font=\sf\small}}
+\tikzset{VAR/.style={var,name=#1,append after command={node[above=0 of #1,font=\ttfamily] {#1}}}}
+
+% List like cons record
+\tikzset{cons/.style= {
+	val,
+	font=\scriptsize\sf,
+	label={[yshift=-2.5pt,xshift=4pt]above:\scriptsize\sf cons},
+	node contents={\nodepart{one} car \nodepart{two} cdr},
+	level distance=1cm,
+	SPLITh=2}
+}
+
+% List like cons record with no label 
+\tikzset{ncons/.style= {
+	val,
+	font=\scriptsize\sf,
+	node contents={\nodepart{one} car \nodepart{two} cdr},
+	level distance=1cm,
+	SPLITh=2}
+}
+
+\tikzset{ground/.style={%
+  shape=ground IEC,
+  color=black,
+  draw,
+  ultra thick,
+  name=#1,
+}}
+
+\tikzset{groundDown/.style={ground=#1, rotate=-90}}
+\tikzset{groundUp/.style={ground=#1, rotate=90}}
+\tikzset{groundLeft/.style={ground=#1, rotate=180}}
+\tikzset{groundRight/.style={ground=#1, rotate=0}}
+
+
+% Draw a "DOT" which usually denotes the source of a pointer. The argument
+% is where this shape will be located. 
+\newcommand\DT[2][]{\node[name=_,fill=black,circle,radius=2pt,inner sep=2pt,outer sep=0pt,#1] at (#2) {};}
+
+
+% Draws a pointer emanating from it. The first argument is where 
+%  
+% is where this shape will be located. 
+\newcommand\DPTR[2]{\DT{#1}\draw[->,>= triangle 45,densely dotted,ultra thick,gray](#1) -- (#2);}
+\newcommand\HVPTR[2]{\draw(#1) -| (#2);}
+\newcommand\LPTR[2]{\draw[bend left=90](#1) to (#2);}
+\newcommand\PTR[2]{\draw[->,>= triangle 45](#1) -- (#2);}
+\newcommand\RPTR[2]{\draw[bend right=90](#1) to (#2);}
+\newcommand\VHPTR[2]{\draw(#1) |- (#2);}
+\newcommand\lb[1]{\begin{tabular}{c}#1\end{tabular}}
+
+\tikzset{callout/.style={%
+  ellipse callout,
+  callout pointer arc=30,
+  callout absolute pointer={(#1)},
+  align=left, 
+  fill=green!30,
+  opacity=.8,
+  font=\rm\it,
+}}
+
+\newcommand\K[1]{\tikz[overlay,remember picture]{\node[inner sep=0pt,xshift=-0.9ex,yshift=0.7ex,opacity=0](#1){};}}
+\newcommand*{\callout}[3]{% label xshift, yshift
+    \K{a}%
+    \begin{tikzpicture}[overlay,remember picture]
+        \path (a.north) node 
+           [xshift=#2ex,
+            yshift=#3ex,
+            midway,
+            rectangle,
+            draw=RoyalBlue!80!yellow,
+            line width=1pt,
+            rounded corners=1pt,
+            inner sep=2pt,fill=yellow!10!orange]  
+      (label) 
+        {\emph{\textrm{{\footnotesize #1}}}\strut};
+        \draw [thin,-stealth,shorten >=5pt,black] 
+           (label.south west) -- (a.north);
+    \end{tikzpicture}%
+}
+
+
+% Annotate
+\def\Y<#1>[#2]#3{\relax
+  \uncover<#1>{\relax
+    \begin{tikzpicture}[overlay]
+      \node[ellipse callout,
+        callout pointer arc=20,
+        callout absolute pointer={(0,0)},
+        inner sep=2pt,
+        align=left,
+        fill=olive!50,
+        opacity=.5,
+        xshift=4ex,
+        yshift=4ex,
+        font=\rm\it\scriptsize,
+        #2,
+      ] {#3};
+    \end{tikzpicture}}}
+
+\def\annotate[#1](#2)#3#4{%
+  \node[
+    annotation,
+    scale=0.65,
+    text width=2cm,
+    inner sep=2mm,
+    fill=olive!5,
+    font=\large,
+    #1
+  ] at (#2) {%
+    \large
+    \textcolor{orange}{\textbf{#3}}
+    \list{--}{%
+      \topsep=2pt
+      \itemsep=0pt
+      \parsep=0pt
+      \parskip=0pt
+      \labelwidth=8pt
+      \leftmargin=8pt
+      \itemindent=0pt
+      \labelsep=2pt
+    }
+    #4
+    \endlist
+  };
+}
+
+
+\begin{document}
+
+\message{ !name(garbage_collector.tex) !offset(-192) }
+\usetikzlibrary{arrows}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{calc}
+\usetikzlibrary{chains}
+\usetikzlibrary{circuits.ee.IEC}
+
+\message{ !name(garbage_collector.tex) !offset(501) }
+
+\end{document}

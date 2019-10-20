@@ -1,0 +1,172 @@
+// Rules for basic structure of Thapl
+
+?start: _NL* play
+
+play: "play"i section_header _NL _INDENT (act|load_directive)* section_body (act|load_directive)* section_footer
+act: "act"i section_header _NL _INDENT (scene|load_directive) * section_body (scene|load_directive)* section_footer
+scene: "scene"i section_header _NL _INDENT load_directive* section_body load_directive* section_footer
+
+section_header: tokens_identifier
+section_footer: _DEDENT
+
+load_directive: "load"i load_list "from"i string _NL
+load_list: tokens_identifier ("," tokens_identifier)*
+
+section_body: [scenery] [dramatis_personae] [action]
+
+dramatis_personae: actors_header _NL _INDENT thaplon _DEDENT
+actors_header: _ACTORS
+
+scenery: scenery_header _NL _INDENT thaplon _DEDENT
+scenery_header: _CHARACTERS
+
+action: _SCRIPT _NL _INDENT _directives _DEDENT
+
+_ACTORS: ("actors"i|"dramatis personae"i)
+_CHARACTERS: "characters"i
+_SCRIPT: ("script"i|"action"i)
+
+// Rules for Thapl directives
+
+_directives: [_NL] compound_directive (_NL compound_directive)* [_NL]
+
+compound_directive: compound_directive THEN atomic_directive -> then_directive
+                  | compound_directive MEANWHILE atomic_directive -> meanwhile_directive
+                  | atomic_directive -> single_compound_directive
+
+atomic_directive: CALL tokens_identifier -> call_directive
+                | RELAX -> relax_directive
+                | tokens -> sentence_directive
+                | CHANGE tokens_identifier_no_to TO tokens atomic_change_slides atomic_change_k -> change_directive
+                | SET tokens_identifier_no_to TO tokens -> set_directive
+atomic_change_slides: ["in" tokens "slides"]
+atomic_change_k: ["with" "k" "of" tokens]
+
+tokens: (_token|expression)+
+tokens_identifier: _token_no_values _token*
+tokens_identifier_no_to: _token_no_to_values _token_no_to*
+_token: _token_no_to | TO
+_token_no_values: _token_no_to_values | TO
+_token_no_to: _token_no_to_values | string | UNIT | BOOLEAN | REAL | INTEGER | UNSIGNED_INTEGER | UNSIGNED_REAL
+_token_no_to_values: IDENTIFIER | VARIABLE | SCOPE_OPERATOR
+
+
+// Rules for expressions
+expression: "(( " expr_ternary _DUB_RPAR
+
+?expr_ternary: expr_or
+             | expr_or "?" expr_ternary ":" expr_or -> expr_cond
+?expr_or: expr_and
+        | expr_or "||" expr_and
+?expr_and: expr_not
+         | expr_and "&&" expr_not
+expr_not: expr_comp -> expr_inline
+        | "!" expr_not
+?expr_comp: expr_sum
+          | expr_comp ">" expr_sum -> expr_gt
+          | expr_comp "<" expr_sum -> expr_lt
+          | expr_comp ">=" expr_sum -> expr_ge
+          | expr_comp "<=" expr_sum -> expr_le
+          | expr_comp "==" expr_sum -> expr_eq
+          | expr_comp ("<>"|"!=") expr_sum -> expr_ne
+?expr_sum: expr_product
+         | expr_sum "+" expr_product -> expr_add
+         | expr_sum "-" expr_product -> expr_sub
+?expr_product: expr_atom
+             | expr_product "*" expr_atom -> expr_mul
+             | expr_product "/" expr_atom -> expr_div
+             | expr_product "%" expr_atom -> expr_mod
+?expr_atom: (UNSIGNED_REAL|UNSIGNED_INTEGER|string|BOOLEAN) -> expr_value
+          | "-" expr_atom -> expr_neg
+          | tokens_identifier -> expr_var
+          | "(" expr_ternary ")"
+
+// Rules for Thapl Object Notation (Thaplon)
+thaplon: _NL* actor_def (_NL* actor_def)* _NL*
+
+actor_header: tokens_identifier
+            | tokens_identifier "[" number_spec "]" -> actor_header_array
+number_spec: number_range ("," number_range)*
+number_range: (UNSIGNED_INTEGER | INTEGER)
+            | (UNSIGNED_INTEGER | INTEGER) ".." (UNSIGNED_INTEGER | INTEGER)
+actor_footer: "dummy"~0
+actor_def: actor_header "(" inheritance ")" ("<" constructor ">")? [COLON _actor_def_property_part] actor_footer -> actor_def_with_inheritance
+         | actor_header ("<" constructor ">")? COLON _actor_def_property_part actor_footer
+
+_actor_def_property_part: _NL _INDENT actor_property ([_NL] actor_property)* [_NL] _DEDENT
+                        | actor_property+
+
+constructor: constructor_param ("," constructor_param)*
+constructor_param: tokens_identifier "(" tokens_identifier ")"
+constructor_call: (tokens ("," tokens)*)?
+
+
+inheritance: single_inheritance ("," single_inheritance)*
+single_inheritance: tokens_identifier ("<" constructor_call [(COLON | BUT) inheritance_property ("," inheritance_property)*] ">")?
+inheritance_property: tokens_identifier initializer
+
+sub_actor_mark: "dummy"~0
+
+has_or_has_meta: HAS | HAS META
+
+actor_property: has_or_has_meta tokens_identifier "(" single_inheritance ")" [initializer] -> has_property
+              | has_or_has_meta tokens_identifier initializer -> has_property_inferrence
+              | CAN tokens_identifier COLON _NL _INDENT can_variables modifiers _directives _DEDENT -> can_property
+              | actor_def -> sub_actor
+
+initializer: "=" tokens
+           | "=>" tokens -> initializer_lazy
+
+modifiers: [modifier ([_NL] modifier)*] [_NL]
+
+modifier: "[" tokens "]"
+        | "[" tokens "]" COLON _NL _INDENT _directives _DEDENT -> modifier_with_directives
+
+can_variables: [_NL] [ "{" [can_variable ("," can_variable)*] "}" _NL]
+can_variable: tokens_identifier "=" tokens
+
+// Terminals for whitespace
+_NL: /(\r?\n[\t ]*)+/
+_INDENT: "<INDENT>"
+_DEDENT: "<DEDENT>"
+
+// Terminals for keywords/punctuation
+COLON.5: ":"
+
+MEANWHILE.10: "meanwhile"i
+THEN.10: "then"i
+
+CALL.10: "call"i
+RELAX.10: "relax"i
+CHANGE.10: "change"i
+SET.10: "set"i
+HAS.1: "has"i
+META.10: "meta"i
+CAN.1: "can"i
+BUT.1: "but"i
+TO.1: "to"i
+SCOPE_OPERATOR.1: "\\"
+
+_DUB_RPAR.100: " ))"
+
+// Terminals for literals, mostly imported from lark's common
+%import common.CNAME -> _RAW_IDENTIFIER
+%import common.SIGNED_INT -> INTEGER
+%import common.SIGNED_FLOAT -> REAL
+%import common.ESCAPED_STRING -> SHORT_STRING
+// I have to cheat for expressions...
+%import common.INT -> UNSIGNED_INTEGER
+%import common.FLOAT -> UNSIGNED_REAL
+?string: SHORT_STRING | LONG_STRING
+VARIABLE: "$" _RAW_IDENTIFIER
+BOOLEAN.10: ("true"i | "false"i)
+UNIT: "nil"i
+// IDENTIFIER: (_RAW_IDENTIFIER|/([^a-zA-Z"{()}\/+ \t][^ \t]*)?-[^ \t]*/)
+IDENTIFIER: _RAW_IDENTIFIER
+LONG_STRING: /(\""".*?(?<!\\)(\\\\)*?\""")/is
+
+COMMENT: "%(" /(.|\n|\r)*/ ")%"
+%ignore COMMENT
+
+%import common.WS_INLINE
+%ignore WS_INLINE

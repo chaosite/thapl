@@ -1,0 +1,33 @@
+play ui
+  load library\animable, library\animable block, library\measure, library\location from "/home/matanp/thapl/Prototype/Examples/library.thapl"
+  characters
+    node name (animable <"(%()%((name)))" but visible = false>):
+      has name (string)
+    node location (animable <"at ((point))" but visible = false>):
+      has point (location)
+    node (animable block <but rendering = "\node[((_\keys))] ((name part)) ((location part)) {((contents part))};">):
+      has name part (node name)
+      has location part (node location)
+      has contents part = ""
+      has xshift (measure <but length = 0, unit = "cm">)
+      has yshift (measure <but length = 0, unit = "cm">)
+    positioned label (animable <"((position)):((text))">):
+      has position (string)
+      has text (string)
+    labelled rectangle (node <but location part\visible = true, name part\visible = true>):
+      has draw (flag) = true
+      has minimum width (measure <but unit = "cm">)
+      has minimum height (measure <but unit = "cm">)
+      has fill (string)
+      has label (positioned label)
+    chain scope (animable <"\begin{scope}[((_\keys)),every join/.style={((join style))},every node/.style={((node style))}]((inner))\end{scope}">):
+      has start chain = "going left"
+      has node distance (measure <but length = 0.4, unit = "cm">)
+      has join style (string)
+      has node style = "on chain, join"
+    arrow (animable block <but rendering = "\draw[((type)),((_\keys))] (%()%((source\name part\name))((extra s))) to (%()%((destination\name part\name))((extra d)));">):
+      has source (reference)
+      has extra s = ""
+      has destination (reference)
+      has extra d = ""
+      has type = "->"

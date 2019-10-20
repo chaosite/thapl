@@ -1,0 +1,365 @@
+\documentclass[t,notheorems,compress]{beamer}
+
+\setbeamersize{text margin left=1em,text margin right=1em}
+
+
+\usepackage{tikz}
+\usepackage{bashful}
+\usepackage{adjustbox}
+
+\adjustboxset{max width=\columnwidth}
+\adjustboxset{max height=0.8\textheight}
+\adjustboxset{center}
+
+\usetikzlibrary{arrows}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{calc}
+\usetikzlibrary{chains}
+\usetikzlibrary{circuits.ee.IEC}
+\usetikzlibrary{decorations}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{decorations.text}
+\usetikzlibrary{graphs}
+\usetikzlibrary{mindmap}
+\usetikzlibrary{patterns}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shadows}
+\usetikzlibrary{shapes}
+\usetikzlibrary{shapes.callouts}
+\usetikzlibrary{shapes.multipart}
+\usetikzlibrary{tikzmark}
+
+\newcounter{offset}
+
+\tikzstyle{GREEN}=[fill=green!50!black]
+
+\tikzset{%
+  invisible/.style={opacity=0},
+  visible on/.style={alt={#1}},
+  alt/.code args={<#1>}{%
+    \alt<#1>{}{\pgfkeysalso{invisible}} % \pgfkeysalso doesn't change the path
+  },
+}
+
+\tikzset{val/.style={draw,fill=blue!30,font=\scriptsize\ttfamily}}
+\tikzset{var/.style={draw,rectangle,fill=red!30,minimum width=0.5cm,minimum height=0.5cm,font=\scriptsize}}
+
+\tikzset{CONS/.style= {val,SPLITh=2}}
+\tikzset{CONSv/.style={val,SPLITv=#1}}
+\tikzset{CONSh/.style={val,SPLITh=#1}}
+\tikzset{SPLITh/.style={SPLIT=#1,rectangle split horizontal,rectangle split part align=bottom}}
+\tikzset{SPLIT/.style={rectangle split,rectangle split parts=#1,rectangle split part align=left}}
+\tikzset{SPLITv/.style={SPLIT=#1,rectangle split horizontal=false}}
+\tikzset{VAL/.style={val,TRIANGLE,font=\sf\small}}
+\tikzset{VAR/.style={var,name=#1,append after command={node[above=0 of #1,font=\ttfamily] {#1}}}}
+
+
+\tikzset{ground/.style={%
+  shape=ground IEC,
+  color=black,
+  draw,
+  ultra thick,
+  name=#1,
+}}
+
+\tikzset{groundDown/.style={ground=#1, rotate=-90}}
+\tikzset{groundUp/.style={ground=#1, rotate=90}}
+\tikzset{groundLeft/.style={ground=#1, rotate=180}}
+\tikzset{groundRight/.style={ground=#1, rotate=0}}
+
+
+% Draw a "DOT" which usually denotes the source of a pointer. The argument
+% is where this shape will be located. 
+\newcommand\DT[2][]{\node[name=_,fill=black,circle,radius=2pt,inner sep=2pt,outer sep=0pt,#1] at (#2) {};}
+
+
+% Draws a pointer emanating from it. The first argument is where 
+%  
+% is where this shape will be located. 
+\newcommand\VHPTR[2]{\draw(#1) |- (#2);}
+
+
+\bash[stdoutFile=\jobname.thapl.tex]
+PYTHONPATH=".." python -m thapl.main ../Examples/garbage_collector.thapl
+\END
+
+
+\begin{document}
+
+\tikzset{Vertical Record/.style={%
+  CONSv=3,
+  name=#1,
+  append after command={%
+    coordinate (#1 1st) at ($ (#1.north)!1/6!(#1.south)$)
+    coordinate (#1 2nd) at ($ (#1.north)!5/6!(#1.south)$)
+  }
+}}
+
+\tikzset{Horizontal Record/.style={%
+  CONSh=3,
+  name=#1,
+  append after command={%
+    coordinate (#1 1st) at ($ (#1.west)!1/6!(#1.east)$)
+    coordinate (#1 2nd) at ($ (#1.west)!5/6!(#1.east)$)
+    [draw,fill=red] (#1 1st) circle (2pt)
+    [draw,fill=red] (#1 2nd) circle (2pt)
+  },
+}}
+
+\def\verticalRecord=#1[#2]{%
+  \node[Vertical Record = #1,#2] {};
+  \DT{#1 1st}
+  \DT{#1 2nd}
+}
+
+\def\horizontalRecord=#1[#2]{%
+  \node[Horizontal Record=#1,#2] {};
+  \DT{#1 1st}
+  \DT{#1 2nd}
+}
+
+\tikzset{Scalar Variable/.style={var,name=#1,pattern=grid,pattern color=red}}
+\tikzset{cell/.style={minimum width=0.9cm,minimum height=0.5cm,rectangle,thin}}
+
+\tikzset{>= triangle 45}
+\tikzset{shorten >=3pt}
+
+\begin{frame}[fragile,t]{Mark \& sweep garbage collection}
+  \begin{adjustbox}{}
+    \begin{tikzpicture}
+      \newcommand\firstLevel{}
+      \newcommand\firstLevelArrow{}
+      \newcommand\secondLevel{}
+      \newcommand\secondLevelArrow{}
+      \newcommand\thirdLevel{}
+      \newcommand\thirdLevelArrow{}
+      \newcommand\fourthLevel{}
+      \tikzstyle{highlight}=[draw=red,ultra thick]
+      \tikzstyle{highlightArrow}=[draw=red,thick]
+        \node(store) [
+          draw,
+          minimum width=20cm,
+          minimum height=10cm,
+          fill=yellow!30,
+        ] at (0,0) {};
+        \node(heap) [
+          draw,
+          minimum width=18.5cm,
+          minimum height=1.5cm,
+          fill=blue!10,
+          yshift=-3.5cm,
+          label=below:{\bf\large Heap Data Structure},
+        ] at (store) {};
+        \begin{scope}[
+            start chain=going left,
+            node distance=.4cm,
+            every node/.style={%
+              on chain,
+              join,
+              fill=green!50!black,
+              minimum width=2mm,
+              minimum height=3.5mm,
+              rectangle,
+            },
+            every join/.style={->,>= stealth,shorten >=1pt}
+          ]
+          \node[xshift=-4.ex,yshift=-0.25cm] at (heap.east) {};
+          \node[minimum width=4mm]{};
+          \node[minimum width=8mm]{};
+          \node[minimum width=10mm](free){};
+          \node[minimum width=2mm]{};
+          \node[minimum width=14mm]{};
+          \node[minimum width=7mm]{};
+          \node[minimum width=20mm]{};
+            \node[minimum width=2mm]{};
+            \node[minimum width=2mm]{};
+            \node[minimum width=2mm]{};
+            \node[minimum width=2mm]{};
+        \end{scope}
+          \node[above=1mm of free,text=green!50!black]{\bf\large List of Free Blocks};
+        \begin{scope}[
+            start chain,
+            node distance=.4cm,
+            every node/.style={%
+              on chain,
+              join,
+              fill=blue!50,
+              minimum width=5mm,
+              circle
+            },
+            every join/.style={<-,>= stealth,shorten <=1pt}
+          ]
+          % \uncover<1-52,56->{%
+          \node[xshift=4.ex,yshift=0.25cm] at (heap.west) (a1) {};
+          \node (a2) {};
+          % }
+          \node (a3) {};
+          \node (a4) {};
+          \node (a5) {};
+          \node (a6) {};
+            % \invisible<53-55>{%
+            \node (a7) {};
+            \node (a8) {};
+          \node (a9) {};
+          \node (a10) {};
+          \node (a11) {};
+          \node (a12) {};
+        \end{scope}
+      {\draw[->,>= stealth,shorten <= 1pt](a9)--(a6);}
+      \begin{scope}[every node/.style={shape=circle,minimum width=5mm,fill=teal!50!}]
+          {\node[GREEN] at (a1) {};}
+          {\node at (a1) {};}
+          {\node[GREEN] at (a2) {};}
+          {\node at (a2) {};}
+        {\node at (a3) {};}
+        {\node at (a4) {};}
+        {\node at (a5) {};}
+        {\node at (a6) {};}
+          {\node[GREEN] at (a7) {};}
+          {\node at (a7) {};}
+          {\node[GREEN] at (a8) {};}
+          {\node at (a8) {};}
+        {\node at (a9) {};}
+        {\node at (a10) {};}
+        {\node at (a11) {};}
+        {\node at (a12) {};}
+      \end{scope}
+          \DT{a1}
+          \DT{a2}
+        \DT{a3}
+        \DT{a4}
+        \DT{a5}
+        \DT{a6}
+          \DT{a7}
+          \DT{a8}
+        \DT{a9}
+        \DT{a10}
+        \DT{a11}
+        \DT{a12}
+        \node[below=1mm of a3]{\bf\large List of Allocated Cells};
+      \node(root) [
+          draw,
+          minimum width=16cm,
+          minimum height=2.5cm,
+          fill=red!10,
+          xshift=0,
+          yshift=2.7cm,
+          label=above:{\Large\bf Root Set}
+        ] at (store) {};
+      \node(stack) [
+        yshift=-0.2cm,
+        xshift=3.5cm,
+      ]{};
+      \begin{scope}[% The Stack
+          start chain=going left,
+          node distance=0mm,
+          every node/.style={on chain},
+        ]
+          \node[Scalar Variable=scalar 1,xshift=-3ex] at (root.east) {};
+          \node[var,\firstLevel] (stack 1){};\DT{stack 1}
+          \node[Scalar Variable=scalar 2]{};
+          \node[var] (dots 1){$·⋯·$};
+          \node[Scalar Variable=scalar 3] {};
+          \node[var,\firstLevel] (stack 2){};\DT{stack 2}
+          \node[Scalar Variable=scalar 4]{};
+          \node[fill=red!30,inner sep=0,minimum height=0.5cm] (dots 2){$·⋯⇐$};
+      \end{scope}
+        \node[above=0 of dots 1,text=red,font=\bf\Large] {Runtime Stack};
+      % Global Variables
+        \node[Scalar Variable=a] at ($ (root.west)!.3!(root.east)$) {};
+        \node[Scalar Variable=b,yshift=-2] at ($ (a)!.5!(root.west)$) {};
+        \node(c) [var,yshift=-6,\firstLevel] at (root.center) {};\DT{c}
+        \node(d) [var,yshift=-3,\firstLevel] at ($ (a)!.5!(c)$) {}; \DT{d}
+        \node(e) [var,yshift=-6,\firstLevel] at ($ (b)!.5!(a)$) {}; \DT{e}
+        \node(f) [var,yshift=-6,\firstLevel] at ($ (b)!.5!(root.west)$) {}; \DT{f};
+        \node(global) [
+          draw,
+          label=above:{{\large\bf Global Variables}},
+          color=red,
+          cloud,
+          cloud puffs=30,
+          cloud puff arc=120,
+          inner sep=0,
+          minimum width=9.5cm,
+          minimum height=1.6cm,
+          yshift=-6,
+          xshift=4
+        ] at (a) {};
+      % Heap Variables
+        \horizontalRecord=v1[below=10ex of stack 2,\secondLevel]
+        \horizontalRecord=v2[below=4ex of v1 1st,\thirdLevel]
+        \verticalRecord=v3[below=18ex of c,\secondLevel]
+        \verticalRecord=v4[right=of v3,\thirdLevel]
+        \verticalRecord=x1[below=16ex of d]
+        \node[Horizontal Record=x2,
+          below=14ex of global.east,
+          pattern=grid,
+          pattern color=blue,
+        ]{};
+        \horizontalRecord=c1[below=12ex of e,\secondLevel]
+        \verticalRecord=c2[below=15ex of e,xshift=8ex,\thirdLevel]
+        \verticalRecord=c4[below=15ex of e,xshift=-8ex,\thirdLevel]
+        \horizontalRecord=x3[below=14ex of global.west,xshift=-3ex
+        ]
+        \horizontalRecord=x4[below=of x3]
+        \horizontalRecord=c3[below=8ex of c1,\fourthLevel]
+      % Null pointers
+        \path let \p1 = (v1.one), \p2 = (root.east) in node[groundRight=g1,yshift=2] at (\x2,\y1){};
+        \node[groundRight=g2,below=4ex of g1,yshift=4pt] {};
+        \path let \p1 = (v4.one), \p2 = (g2) in node[groundRight=g3,yshift=2] at (\x2,\y1){};
+        \node[groundRight=g4, below=4ex of g3,yshift=4pt]{};
+        \node[groundDown=g5,below=12ex of d,yshift=4pt]{};
+        \node[groundLeft=G1,left=12ex of f.west] {};
+        \node[groundRight=G2,below=31 ex of G1,xshift=6ex] {};
+        \draw[->](f)->(G1);
+        \draw[->](v1 2nd)->(g1.input);
+        \VHPTR{stack 1}{g1.input}
+        \draw[->](v2 2nd)->(g2.input);
+        \VHPTR{v2 1st}{g3}
+        \draw[->](v4 1st)->(g3);
+        \draw[->](v4 2nd)->(g4);
+        \draw[->](d.center)->(g5.input);
+        \draw[->] (x4 1st) |- (G2);
+          \draw[->,bend left= 45] (a1) to (x3.west);
+          \draw[->,bend right= 60] (a2) to (x4.east);
+          \draw[->,bend left=120] (a3)..controls(f) and ($ (c1.north)!0.55!(f)$)..(c1.north west);
+          \draw[->,bend right=30] (a4)to(c4.south);
+          \draw[->,bend right=20] (a5)to(c3.south);
+          \draw[->,bend right=20] (a6)to(c2.south);
+          \draw[->,bend right=20] (a7)to(x1.south);
+          \draw[->](a8)..controls ($ (x1.south east)!0.5!(v3.south west)$)
+          and ($ (x1.north east)!0.4!(v3.north west)$)..(x2.west);
+          \draw[->] (a9) to (v3.west);
+          \draw[->] (a10) to (v4.west);
+          \draw[->] (a11)..controls(g2) and (g1)..(v2.east);
+          \draw[->] (a12)..controls(g4) and ($ (store.north east)!0.8!(g1)$)..(v1.east);
+      % Intra-variables references
+        \draw[->,\firstLevelArrow](stack 2)->(v1);
+        \draw[->,\firstLevelArrow](c)->(v3.north);
+        \draw[->,\firstLevelArrow](e)->(c1.north);
+        %
+        \draw[->,\secondLevelArrow](v1 1st)->(v2.north);
+        \draw[->,\secondLevelArrow](v3 1st) to (v4 1st);
+        \draw[->,\secondLevelArrow](v3 2nd) to (v4 2nd);
+        \draw[->,\secondLevelArrow,bend left=30](c1 2nd) to (c2.north);
+        %
+        \draw[->,\secondLevelArrow,bend left=30](c1 1st) to (c4.east);
+        \draw[->,\thirdLevelArrow,bend left=30](c2 2nd) to (c3.east);
+        \draw[->,\thirdLevelArrow,bend left=30](c4 2nd) to (c3.north);
+        \draw[->,\thirdLevelArrow,bend left=30](c3 1st) to (c4.south);
+        %
+        \draw[->,bend left=30](c2 1st) to (c1.south);
+        \draw[->,bend left=30](c3 2nd) to (c2.west);
+        \draw[->,bend left=30](c4 1st) to (c1.west);
+        \draw[->,bend right=30](x3 1st) to (x4.west);
+        \draw[->,bend right=30](x4 2nd) to (x3.east);
+        \draw[->] (x3 2nd) to (f.south);
+    \end{tikzpicture}
+  \end{adjustbox}
+
+\end{frame}
+
+
+\include{\jobname.thapl}
+
+\end{document}

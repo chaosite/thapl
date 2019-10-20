@@ -1,0 +1,17 @@
+play variable boolean argument
+     load library\animable block from "library.thapl"
+     load ui\node, ui\node name from "gc_lib.thapl"
+     characters
+         thingy (node : contents part = "(( item )), (( arg ))"):
+             has item = "start"
+             has arg = false
+             can do:
+                 [$bool]
+                 change item to (( $bool ? "a" : "b" )) meanwhile change arg to $bool
+     actors
+          mike (thingy)
+     action
+          mike do true
+          mike do false
+          mike do true
+          mike do (( 1 + 1 == 3 ))

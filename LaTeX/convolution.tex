@@ -1,0 +1,16 @@
+\documentclass{beamer}
+
+\usepackage{tikz}
+\usepackage{adjustbox}
+\usetikzlibrary{shadows,patterns,shapes,positioning}
+\usepackage{bashful}
+
+\begin{document}
+
+\bash[stdoutFile=\jobname.thapl.tex]
+PYTHONPATH=".." python -m thapl.main ../Examples/convolution.thapl
+\END
+
+\include{\jobname.thapl}
+
+\end{document}

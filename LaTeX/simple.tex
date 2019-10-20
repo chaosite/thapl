@@ -1,0 +1,16 @@
+\documentclass{beamer}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{bashful}
+\usepackage{adjustbox}
+
+\begin{document}
+
+\bash[stdoutFile=\jobname.thapl.tex]
+PYTHONPATH=".." python -m thapl.main ../Examples/simple.thapl
+\END
+
+\include{\jobname.thapl}
+
+\end{document}

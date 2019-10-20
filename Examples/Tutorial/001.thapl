@@ -1,0 +1,3 @@
+play hanoi
+  characters
+    animable: has render = ""

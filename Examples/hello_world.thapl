@@ -1,0 +1,11 @@
+play hello world
+  load library\animable from "library.thapl"
+  dramatis personae
+    hello (animable <"\node[((_\keys))] (%()%((name))) (0,0) {((contents))};">):
+      has name = "hello"
+      has contents = "hello, world!"
+      has draw = "blue!80"
+      has line width = "2mm"
+  action
+    hello disappear
+    hello appear

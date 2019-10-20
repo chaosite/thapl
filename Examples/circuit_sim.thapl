@@ -1,0 +1,99 @@
+play hanoi
+  load library\animable, library\location from "library.thapl"
+  characters
+    nand gate (animable <"""\begin{scope}[shift={((shift))},line width=1pt]
+\draw[((pin 1 color))] (-0.5,0.25) -- +(-0.25,0) coordinate (%()%((name)) IN1);
+\draw[((pin 2 color))] (-0.5,-0.25) -- +(-0.25,0) coordinate (%()%((name)) IN2);
+\draw[((pin 3 color))] (0.7,0) -- ++(0.25,0) coordinate (%()%((name)) OUT);
+\draw[((pin 3 color))] (0.6,0) circle (2.5pt);
+
+\draw[fill=blue!10] (-0.5,0) |- ++ (0.5,0.5) arc (90:-90:0.5) -| cycle;
+\draw[blue] (0,0) node {\small\sf U-((name))};
+\draw[blue] (0,0.7) node [align=center]{\sf\tiny NAND Gate};
+\end{scope}""">):
+      has pin 1 = false
+      has pin 2 = false
+      has pin 3 => (( !(pin 1 && pin 2) ))
+      has pin 1 color => (( pin 1 ? "red" : "blue" ))
+      has pin 2 color => (( pin 2 ? "red" : "blue" ))
+      has pin 3 color => (( pin 3 ? "red" : "blue" ))
+      has name (string)
+      has shift (location)
+    input wire (animable <"">) <in (boolean), out (reference)>:
+      has input (boolean) => in
+      has color => (( input ? "red" : "blue" ))
+      has output => out
+      can on:
+        change input to true meanwhile change output\ to true
+      can off:
+        change input to false meanwhile change output\ to false
+    input double wire (animable <"">) <in (boolean), out 1 (reference), out 2 (reference)>:
+      has input => in
+      has color => (( input ? "red" : "blue" ))
+      has output 1 => out 1
+      has output 2 => out 2
+      can on:
+        change input to true meanwhile change output 1\ to true meanwhile change output 2\ to true
+      can off:
+        change input to false meanwhile change output 1\ to false meanwhile change output 2\ to false
+    patch wire (animable <"">)  <in (reference), out (reference)>:
+      has input => in
+      has color => (( input ? "red" : "blue" ))
+      has output (reference) => out
+    output double wire (animable <"">) <in (reference), out 2 (reference), out v (reference)>:
+      has input => in
+      has color => (( input ? "red" : "blue" ))
+      has output 1 => input
+      has output 2 => out 2
+      has output value => out v
+
+  actors
+    state (animable <"\node[((top color)), draw, anchor=west] at (3.5,-1.5) {\scriptsize\sf STATE: ((state text))};">):
+      has top color = "black"
+      has bottom color = "black"
+      has state text = "No change"
+      has top output = "\bullet"
+      has bottom output = "\bullet"
+      can is reset:
+        change state text to "Reset" meanwhile change top color to "yellow" meanwhile change bottom color to "green" meanwhile change top output to "0" meanwhile change bottom output to "1"
+      can is set:
+        change state text to "Set" meanwhile change top color to "green" meanwhile change bottom color to "yellow" meanwhile change top output to "1" meanwhile change bottom output to "0"
+      can is invalid:
+        change state text to "Invalid" meanwhile change top color to "orange" meanwhile change bottom color to "orange" meanwhile change top output to "\bullet" meanwhile change bottom output to "\bullet"
+    s wire (input wire <false, nand 1\pin 1 but rendering = """
+\draw[color=((color)),line width=1pt] (1 IN1) to [short,-o] ++(-1.25, 0)
+node [anchor=south]{\scriptsize\sf S=((input))};""">)
+    r wire (input wire <false, nand 3\pin 2 but rendering = """
+\draw[color=((color)),line width=1pt] (3 IN2) to [short,-o] ++(-1.25, 0)
+node [anchor=south]{\scriptsize\sf R=((input))};""">)
+    c wire (input double wire <false, nand 1\pin 2, nand 3\pin 1 but rendering = """
+\draw[color=((color)),line width=1pt](-2,-1.5) node [anchor=south]{\scriptsize\sf C=((input))}
+  to [short,o-*] ++(1,0) node(C1){} |- (1 IN2)
+  (C1.center) |- (3 IN1);""">)
+    neg s wire (patch wire <(( nand 1\pin 3 )), (( nand 2\pin 1 )) but rendering = """
+\draw[color=((color)),line width=1pt] (1 OUT) node [anchor=south]
+  {\scriptsize$\mathsf{\overline{S}={((input))}}$}--(2 IN1);""">)
+    neg r wire (patch wire <(( nand 3\pin 3 )), (( nand 4\pin 2 )) but rendering = """
+\draw[color=((color)),line width=1pt] (3 OUT) node [anchor=south]
+  {\scriptsize$\mathsf{\overline{R}={((input))}}$}--(4 IN2);""">)
+    q wire (output double wire <(( nand 2\pin 3 )), (( nand 4\pin 1 )), state\top output but color => state\bottom color, rendering = """
+\draw[color=((color)),line width=1pt] (2 OUT)
+  to [short,-*] ++(0.5,0) coordinate (Q)
+  to [short,-o] ++(1,0)   node [anchor=west]{\scriptsize$\mathsf{Q=((output value))}$}
+  (4 IN1)     -|++(-0.25,0.5) -- (Q |- 2 IN2) -- (Q);""">)
+    neg q wire (output double wire <(( nand 4\pin 3 )), (( nand 2\pin 2 )), state\bottom output but color => state\top color, rendering = """
+\draw[color=((color)),line width=1pt] (4 OUT)
+  to [short,-*] ++(0.5,0) coordinate (NQ)
+  to [short,-o] ++(1,0)   node [anchor=west]{\scriptsize$\mathsf{\overline{Q}=((output value))}$}
+  (2 IN2)     -|++(-0.25,-0.25) -- (NQ |- 4 IN1) -- (NQ);""">)
+    nand 1 (nand gate <but shift\x = 0, shift\y = 0, name = "1", pin 1 = false, pin 2 = false>)
+    nand 2 (nand gate <but shift\x = 3, shift\y = -0.25, name = "2", pin 1 = true, pin 2 = true, pin 1 color => (( neg s wire\color )), pin 2 color => state\top color, pin 3 color => state\bottom color>)
+    nand 3 (nand gate <but shift\x = 0, shift\y = -3, name = "3", pin 1 = false, pin 2 = false>)
+    nand 4 (nand gate <but shift\x = 3, shift\y = -2.75, name = "4", pin 1 = true, pin 2 = true, pin 1 color => state\bottom color, pin 2 color => (( neg r wire\color )), pin 3 color => state\top color>)
+
+  action
+    s wire on
+    s wire off meanwhile c wire on
+    r wire on meanwhile state is reset
+    r wire off meanwhile s wire on meanwhile state is set
+    r wire on meanwhile state is invalid
