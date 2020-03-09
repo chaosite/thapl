@@ -60,6 +60,10 @@ play hanoi
         change state text to "Set" meanwhile change top color to "green" meanwhile change bottom color to "yellow" meanwhile change top output to "1" meanwhile change bottom output to "0"
       can is invalid:
         change state text to "Invalid" meanwhile change top color to "orange" meanwhile change bottom color to "orange" meanwhile change top output to "\bullet" meanwhile change bottom output to "\bullet"
+    nand 1 (nand gate <but shift\x = 0, shift\y = 0, name = "1", pin 1 = false, pin 2 = false>)
+    nand 2 (nand gate <but shift\x = 3, shift\y = -0.25, name = "2", pin 1 = true, pin 2 = true, pin 1 color => (( neg s wire\color )), pin 2 color => state\top color, pin 3 color => state\bottom color>)
+    nand 3 (nand gate <but shift\x = 0, shift\y = -3, name = "3", pin 1 = false, pin 2 = false>)
+    nand 4 (nand gate <but shift\x = 3, shift\y = -2.75, name = "4", pin 1 = true, pin 2 = true, pin 1 color => state\bottom color, pin 2 color => (( neg r wire\color )), pin 3 color => state\top color>)
     s wire (input wire <false, nand 1\pin 1 but rendering = """
 \draw[color=((color)),line width=1pt] (1 IN1) to [short,-o] ++(-1.25, 0)
 node [anchor=south]{\scriptsize\sf S=((input))};""">)
@@ -86,10 +90,6 @@ node [anchor=south]{\scriptsize\sf R=((input))};""">)
   to [short,-*] ++(0.5,0) coordinate (NQ)
   to [short,-o] ++(1,0)   node [anchor=west]{\scriptsize$\mathsf{\overline{Q}=((output value))}$}
   (2 IN2)     -|++(-0.25,-0.25) -- (NQ |- 4 IN1) -- (NQ);""">)
-    nand 1 (nand gate <but shift\x = 0, shift\y = 0, name = "1", pin 1 = false, pin 2 = false>)
-    nand 2 (nand gate <but shift\x = 3, shift\y = -0.25, name = "2", pin 1 = true, pin 2 = true, pin 1 color => (( neg s wire\color )), pin 2 color => state\top color, pin 3 color => state\bottom color>)
-    nand 3 (nand gate <but shift\x = 0, shift\y = -3, name = "3", pin 1 = false, pin 2 = false>)
-    nand 4 (nand gate <but shift\x = 3, shift\y = -2.75, name = "4", pin 1 = true, pin 2 = true, pin 1 color => state\bottom color, pin 2 color => (( neg r wire\color )), pin 3 color => state\top color>)
 
   action
     s wire on
