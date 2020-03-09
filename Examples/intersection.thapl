@@ -1,5 +1,5 @@
 play intersection
-  load library\animable, library\measure, library\location from "/home/matanp/thapl/Prototype/Examples/library.thapl"
+  load library\animable, library\measure, library\location from "library.thapl"
   characters
     circle (animable <"((center)) circle ( ((radius)))">):
       has center (location)

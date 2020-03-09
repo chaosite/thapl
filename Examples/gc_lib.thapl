@@ -1,5 +1,5 @@
 play ui
-  load library\animable, library\animable block, library\measure, library\location from "/home/matanp/thapl/Prototype/Examples/library.thapl"
+  load library\animable, library\animable block, library\measure, library\location from "library.thapl"
   characters
     node name (animable <"(%()%((name)))" but visible = false>):
       has name (string)
